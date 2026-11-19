@@ -1,0 +1,1449 @@
+A<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海桃桃护士助手</title>
+        <style>
+        :root {
+            --primary: #2563eb;
+            --primary-deep: #1e3a8a;
+            --accent: #06b6d4;
+            --bg: #eef3fb;
+            --white: #ffffff;
+            --border: #dbe4f0;
+            --text: #1e293b;
+            --muted: #64748b;
+            --card-shadow: 0 8px 28px rgba(30,58,138,0.10), 0 2px 6px rgba(30,58,138,0.06);
+            --card-shadow-hover: 0 16px 40px rgba(30,58,138,0.16), 0 4px 12px rgba(30,58,138,0.10);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Roboto, Arial, sans-serif;
+            background:
+                radial-gradient(1200px 600px at 12% -10%, #e3edff 0%, rgba(227,237,255,0) 60%),
+                radial-gradient(1000px 500px at 100% 0%, #e6fbff 0%, rgba(230,251,255,0) 55%),
+                linear-gradient(180deg, #f3f7fd 0%, #e8f0fb 100%);
+            background-attachment: fixed;
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        ::-webkit-scrollbar { width: 9px; height: 9px; }
+        ::-webkit-scrollbar-thumb { background: #b8cbe6; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #93aecf; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        .header {
+            background: linear-gradient(135deg, #0f2c5c 0%, #1e4d8f 55%, #2563eb 100%);
+            padding: 16px 26px;
+            box-shadow: 0 6px 22px rgba(15,44,92,0.30);
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 10; position: relative;
+        }
+        .header::after {
+            content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px;
+            background: linear-gradient(90deg, #06b6d4, #38bdf8, #818cf8, #06b6d4);
+        }
+        .header h1 {
+            margin: 0; font-size: 21px; font-weight: 700; letter-spacing: 1px; color: #fff;
+            display: flex; align-items: center; gap: 10px; text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+        }
+        
+        .header-clock {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #fff; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            padding: 4px 18px; border-radius: 12px;
+            background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22);
+            backdrop-filter: blur(4px); min-width: 190px;
+        }
+        .header-clock .clk-time { font-size: 22px; font-weight: 700; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+        .header-clock .clk-date { font-size: 12px; opacity: .88; margin-top: 3px; }
+.container { display: flex; flex: 1; overflow: hidden; padding: 22px; gap: 20px; }
+        .sidebar {
+            width: 285px; background: rgba(255,255,255,0.92); backdrop-filter: blur(6px);
+            border: 1px solid rgba(219,228,240,0.7); border-radius: 16px; box-shadow: var(--card-shadow);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .sidebar-header {
+            padding: 16px 16px; border-bottom: 1px solid #eef2f8; font-weight: 700; font-size: 15px;
+            color: var(--primary-deep); display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn-add {
+            background: linear-gradient(135deg, var(--primary), var(--primary-deep));
+            color: #fff; border: none; padding: 6px 13px; border-radius: 8px; cursor: pointer;
+            font-size: 12px; font-weight: 600; box-shadow: 0 3px 10px rgba(37,99,235,0.30); transition: all .2s;
+        }
+        .btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.40); }
+        .menu-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .menu-item {
+            padding: 11px 14px; margin-bottom: 6px; border-radius: 10px; cursor: pointer; transition: all .22s;
+            font-size: 14px; display: flex; justify-content: space-between; align-items: center; color: #334155; position: relative;
+        }
+        .menu-item:hover { background: #eef4ff; color: var(--primary); transform: translateX(3px); }
+        .menu-item.active { background: linear-gradient(90deg, #e6f0ff, #f0f6ff); color: var(--primary-deep); font-weight: 700; box-shadow: inset 0 0 0 1px #bcd4fb; }
+        .menu-item.active::before {
+            content: ""; position: absolute; left: 0; top: 7px; bottom: 7px; width: 4px; border-radius: 4px;
+            background: linear-gradient(180deg, var(--accent), var(--primary));
+        }
+        .delete-btn { color: #ef4444; cursor: pointer; font-size: 14px; padding: 0 6px; display: none; }
+        .menu-item:hover .delete-btn { display: block; }
+        .workspace {
+            flex: 1; background: rgba(255,255,255,0.94); backdrop-filter: blur(6px);
+            border: 1px solid rgba(219,228,240,0.7); border-radius: 16px; box-shadow: var(--card-shadow);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .form-area { padding: 22px; border-bottom: 1px solid #eef2f8; max-height: 45%; overflow-y: auto; }
+        .form-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; color: var(--primary-deep); display: flex; align-items: center; gap: 8px; }
+        .form-title::before { content: ""; width: 5px; height: 18px; border-radius: 3px; background: linear-gradient(180deg, var(--accent), var(--primary)); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 13px; margin-bottom: 6px; color: var(--muted); font-weight: 600; }
+        .form-control { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; transition: all .22s; background: #fbfcfe; color: var(--text); }
+        .form-control:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.16); }
+        textarea.form-control { resize: vertical; min-height: 60px; }
+        .preview-area { flex: 1; padding: 22px; display: flex; flex-direction: column; background: linear-gradient(180deg, #f7faff, #f0f5fd); }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .preview-text { flex: 1; width: 100%; padding: 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; line-height: 1.7; resize: none; background: #fff; font-family: inherit; box-shadow: inset 0 1px 3px rgba(0,0,0,0.03); }
+        .preview-text:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.14); }
+        .btn-copy { background: linear-gradient(135deg, var(--primary), var(--primary-deep)); color: #fff; border: none; padding: 9px 22px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 4px 14px rgba(37,99,235,0.32); transition: all .2s; }
+        .btn-copy:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(37,99,235,0.42); }
+        .tags-container { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 9px; }
+        .tag { padding: 6px 13px; background: #fff; border: 1px solid #d7e2f2; border-radius: 20px; font-size: 12px; cursor: pointer; color: #475569; transition: all .2s; }
+        .tag:hover { color: #fff; border-color: var(--primary); background: linear-gradient(135deg, var(--primary), var(--accent)); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(6,182,212,0.25); }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.45); backdrop-filter: blur(3px); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal { background: #fff; padding: 24px; border-radius: 18px; width: 420px; box-shadow: 0 24px 60px rgba(15,44,92,0.30); border: 1px solid #eef2f8; animation: pop .25s ease; }
+        @keyframes pop { from { transform: translateY(14px) scale(.97); opacity: 0; } to { transform: none; opacity: 1; } }
+        .modal h3 { margin-top: 0; color: var(--primary-deep); font-size: 18px; }
+        .modal label { font-size: 13px; color: var(--muted); font-weight: 600; }
+        .modal-input { width: 100%; margin-bottom: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; font-size: 14px; transition: all .2s; }
+        .modal-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+        .btn-cancel { background: #fff; border: 1px solid var(--border); padding: 8px 18px; border-radius: 10px; cursor: pointer; color: #475569; transition: all .2s; }
+        .btn-cancel:hover { background: #f1f5fb; }
+        .btn-save { background: linear-gradient(135deg, var(--primary), var(--primary-deep)); color: #fff; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(37,99,235,0.30); transition: all .2s; }
+        .btn-save:hover { transform: translateY(-1px); box-shadow: 0 7px 18px rgba(37,99,235,0.40); }
+        .tab-bar { display: flex; gap: 10px; }
+        .tab-btn { padding: 8px 18px; border-radius: 22px; cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid rgba(255,255,255,0.35); background: rgba(255,255,255,0.12); color: #eaf1fb; transition: all .22s; }
+        .tab-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+        .tab-btn.active { background: #fff; color: var(--primary-deep); border-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+        #archiveView { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 50; display: none; overflow-y: auto; }
+        #archiveView.show { display: block; animation: fade .25s ease; }
+        @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        .arch-header { background: linear-gradient(135deg, #0f2c5c 0%, #1e4d8f 55%, #2563eb 100%); padding: 18px 26px; box-shadow: 0 6px 22px rgba(15,44,92,0.30); display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .arch-header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, #06b6d4, #38bdf8, #818cf8, #06b6d4); }
+        .arch-header h1 { margin: 0; font-size: 21px; color: #fff; font-weight: 700; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(0,0,0,0.25); }
+        .arch-body { padding: 22px; max-width: 1120px; margin: 0 auto; }
+        .arch-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; }
+        .search-box { flex: 1; max-width: 380px; }
+        .rec-card { background: #fff; border-radius: 14px; padding: 18px 18px 18px 22px; box-shadow: var(--card-shadow); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); transition: all .2s; }
+        .rec-card:hover { box-shadow: var(--card-shadow-hover); transform: translateY(-2px); }
+        .rec-card h4 { margin: 0 0 7px; font-size: 16px; color: #0f2c5c; }
+        .rec-card p { margin: 0; font-size: 12px; color: var(--muted); }
+        .pill { display: inline-block; padding: 2px 10px; background: #e6f0ff; color: var(--primary-deep); border-radius: 12px; font-size: 11px; margin-right: 5px; font-weight: 600; }
+        .vital-item { background: #fff; border: 1px solid #eef2f8; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(30,58,138,0.05); }
+        .vital-time { font-weight: 700; color: var(--primary); font-size: 14px; }
+        .btn-danger { background: #fff; color: #ef4444; border: 1px solid #fecaca; padding: 7px 14px; border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all .2s; }
+        .btn-danger:hover { background: #fef2f2; transform: translateY(-1px); }
+        .btn-back { background: #fff; border: 1px solid var(--border); padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; color: #475569; transition: all .2s; }
+        .btn-back:hover { background: #f1f5fb; transform: translateY(-1px); }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-deep)); color: #fff; border: none; padding: 9px 18px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; box-shadow: 0 4px 14px rgba(37,99,235,0.30); transition: all .2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37,99,235,0.40); }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 14px; background: #fff; padding: 20px; border-radius: 14px; margin-bottom: 16px; box-shadow: var(--card-shadow); border: 1px solid #eef2f8; }
+        .section-title { font-size: 16px; font-weight: 700; color: var(--primary-deep); margin: 20px 0 12px; display: flex; align-items: center; }
+        #noteView { position: fixed; top:0; left:0; right:0; bottom:0; background: var(--bg); z-index: 50; display: none; overflow-y: auto; }
+        #noteView.show { display: block; animation: fade .25s ease; }
+        .note-item { background:#fff; border-radius:12px; padding:16px 18px; margin-bottom:12px; box-shadow: var(--card-shadow); border-left: 5px solid var(--accent); transition: all .2s; }
+        .note-item:hover { box-shadow: var(--card-shadow-hover); transform: translateY(-2px); }
+        .note-time { font-weight:700; color:var(--primary); font-size:13px; margin-bottom:7px; }
+        .note-text { font-size:14px; line-height:1.75; color:#334155; white-space:pre-wrap; word-break:break-all; }
+        .note-actions { margin-top:10px; display:flex; gap:8px; }
+
+        .calc-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+        .calc-tab { padding:8px 16px; border-radius:999px; cursor:pointer; font-size:13px; font-weight:600; border:1px solid var(--border); background:#fff; color:#475569; transition:all .2s; }
+        .calc-tab:hover { color:var(--primary); border-color:#bcd4fb; }
+        .calc-tab.active { background:linear-gradient(135deg,var(--primary),var(--primary-deep)); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(37,99,235,.30); }
+        .calc-card { background:#fff; border-radius:14px; padding:20px; box-shadow:var(--card-shadow); border:1px solid #eef2f8; }
+        .calc-panel { display:none; }
+        .calc-panel.show { display:block; animation:fade .25s ease; }
+        .calc-row { display:flex; flex-wrap:wrap; gap:14px; margin-bottom:14px; }
+        .calc-result { background:linear-gradient(135deg,#eef6ff,#f3fbff); border:1px solid #cfe4ff; border-radius:12px; padding:16px 18px; font-size:15px; color:var(--primary-deep); font-weight:600; line-height:1.9; }
+        .calc-result b { font-size:20px; }
+        .calc-tip { font-size:12px; color:#999; margin-top:10px; line-height:1.6; font-weight:400; }
+        .bal-pos { color:#16a34a; } .bal-neg { color:#ef4444; } .bal-zero { color:#64748b; }
+        .fluid-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed #e8eef7; font-size:13px; }
+        .fluid-item:last-child { border-bottom:none; }
+        #calcView { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--bg); z-index:50; display:none; overflow-y:auto; }
+        #calcView.show { display:block; animation:fade .25s ease; }
+        .sc-display { background:linear-gradient(135deg,#0f2c5c,#1e4d8f); color:#fff; border-radius:14px; padding:22px 18px; font-size:40px; font-weight:700; text-align:right; min-height:84px; line-height:1.2; letter-spacing:1px; word-break:break-all; font-variant-numeric:tabular-nums; box-shadow:inset 0 2px 8px rgba(0,0,0,.25); margin-bottom:14px; }
+        .sc-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+        .sc-btn { border:none; border-radius:16px; background:#f1f5fb; color:#1e293b; font-size:24px; font-weight:600; height:64px; cursor:pointer; transition:all .12s; box-shadow:0 2px 6px rgba(30,58,138,.08); }
+        .sc-btn:hover { background:#e6eefb; }
+        .sc-btn:active { transform:scale(.95); }
+        .sc-btn.sc-op { background:linear-gradient(135deg,#eef6ff,#dcebff); color:var(--primary-deep); font-size:26px; }
+        .sc-btn.sc-op:hover { background:linear-gradient(135deg,#e0efff,#cfe1ff); }
+        .sc-btn.sc-fn { background:#e2e8f0; color:#334155; }
+        .sc-btn.sc-fn:hover { background:#d3dbe6; }
+        .sc-btn.sc-eq { background:linear-gradient(135deg,var(--primary),var(--primary-deep)); color:#fff; font-size:26px; box-shadow:0 4px 12px rgba(37,99,235,.35); }
+        .sc-btn.sc-eq:hover { transform:translateY(-1px); box-shadow:0 7px 18px rgba(37,99,235,.45); }
+
+        /* 感染/特殊患者登记册（仅新增，独立 inf 前缀，不影响原有功能与布局） */
+        #infView { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--bg); z-index:50; display:none; overflow-y:auto; }
+        #infView.show { display:block; animation:fade .25s ease; }
+        .inf-alert { background:linear-gradient(135deg,#fff1f2,#fff5f0); border:1px solid #fecaca; border-left:5px solid #ef4444; border-radius:12px; padding:14px 18px; margin-bottom:16px; color:#9f1239; font-weight:600; line-height:1.8; font-size:14px; }
+        .inf-alert b { color:#dc2626; font-size:18px; }
+        .inf-filter { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+        .inf-chip { padding:6px 14px; border-radius:999px; cursor:pointer; font-size:12px; font-weight:600; border:1px solid var(--border); background:#fff; color:#475569; transition:all .2s; }
+        .inf-chip:hover { color:var(--primary); border-color:#bcd4fb; }
+        .inf-chip.active { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(239,68,68,.30); }
+        .inf-card { background:#fff; border-radius:14px; padding:16px 18px 16px 22px; box-shadow:var(--card-shadow); margin-bottom:12px; border-left:6px solid var(--primary); }
+        .inf-card.route-air { border-left-color:#dc2626; }
+        .inf-card.route-droplet { border-left-color:#f97316; }
+        .inf-card.route-contact { border-left-color:#8b5cf6; }
+        .inf-card.route-blood { border-left-color:#2563eb; }
+        .inf-card.route-other { border-left-color:#64748b; }
+        .inf-card.overdue { background:#fff5f5; }
+        .inf-card h4 { margin:0 0 8px; font-size:16px; color:#0f2c5c; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+        .inf-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700; color:#fff; }
+        .ib-air { background:#dc2626; } .ib-droplet { background:#f97316; } .ib-contact { background:#8b5cf6; } .ib-blood { background:#2563eb; } .ib-other { background:#64748b; }
+        .inf-pill { display:inline-block; padding:2px 10px; background:#eef2ff; color:#3730a3; border-radius:12px; font-size:11px; margin-right:5px; margin-bottom:3px; font-weight:600; }
+        .inf-line { font-size:13px; color:#475569; line-height:1.8; margin-top:4px; }
+        .inf-line .lab { color:#94a3b8; }
+        .inf-warn { color:#dc2626; font-weight:700; }
+        .inf-actions { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+        .inf-empty { text-align:center; color:#aaa; padding:40px; }
+        @media screen and (max-width:768px){
+            .inf-alert { font-size:13px; padding:12px 14px; }
+            .inf-alert b { font-size:16px; }
+            .inf-card h4 { font-size:15px; }
+        }
+    
+        /* ===== 手机版适配（纯显示层，仅窄屏生效；电脑端外观完全不变） ===== */
+        @media screen and (max-width:768px){
+            body { height: auto; min-height: 100vh; }
+            .header { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 14px; }
+            .header h1 { font-size: 18px; justify-content: center; gap: 7px; }
+            .header-clock { flex-direction: row; gap: 10px; align-self: center; min-width: 0; padding: 4px 16px; }
+            .header-clock .clk-time { font-size: 18px; }
+            .header-clock .clk-date { font-size: 11px; margin-top: 0; }
+            .tab-bar { flex-wrap: wrap; gap: 8px; width: 100%; }
+            .tab-btn { flex: 1 1 calc(50% - 8px); min-width: 0; text-align: center; justify-content: center; font-size: 13px; padding: 9px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .container { flex-direction: column; height: auto; overflow: visible; padding: 14px; gap: 14px; }
+            .sidebar { width: 100%; }
+            .workspace { width: 100%; }
+            .form-area { max-height: none; padding: 16px; }
+            .preview-area { padding: 16px; }
+            .arch-header { padding: 14px 14px; }
+            .arch-header h1 { font-size: 18px; }
+            .arch-body { padding: 14px; }
+            .arch-toolbar { flex-direction: column; align-items: stretch; }
+            .search-box { max-width: none; }
+            .info-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); padding: 14px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .modal { width: 92vw; max-width: 92vw; padding: 18px; }
+            .rec-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .calc-card { padding: 14px; }
+            .sc-display { font-size: 30px; min-height: 70px; padding: 18px 14px; }
+            .sc-btn { height: 54px; font-size: 20px; border-radius: 14px; }
+            .sc-grid { gap: 8px; }
+            .inf-card { padding: 14px 14px 14px 18px; }
+        }
+        @media screen and (max-width:380px){
+            .tab-btn { font-size: 12px; padding: 8px 4px; }
+            .header h1 { font-size: 16px; }
+        }
+        /* ===== 手机版适配结束 ===== */
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🏥 海桃桃护士助手</h1>
+        <div class="header-clock" id="headerClock">
+            <span class="clk-time" id="clkTime">--:--:--</span>
+            <span class="clk-date" id="clkDate">--</span>
+        </div>
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tabTplBtn" onclick="switchView('templates')">📝 场景模板</button>
+            <button class="tab-btn" id="tabArcBtn" onclick="switchView('archive')">📁 患者档案</button>
+            <button class="tab-btn" id="tabNoteBtn" onclick="switchView('note')">🗒️ 临时记事本</button>
+            <button class="tab-btn" id="tabCalcBtn" onclick="switchView('calc')">🧮 临床计算器</button>
+            <button class="tab-btn" id="tabInfBtn" onclick="switchView('inf')">🦠 感染登记册</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>常用场景模板</span>
+                <button class="btn-add" onclick="openModal()">+ 新建</button>
+            </div>
+            <div class="menu-list" id="menuList"></div>
+        </div>
+
+        <div class="workspace">
+            <div class="form-area">
+                <div class="form-title" id="currentTplName">请选择模板</div>
+                <div class="form-grid" id="formGrid"></div>
+            </div>
+
+            <div class="preview-area">
+                <div class="preview-header">
+                    <span style="font-weight: bold; color: #1890ff;">生成结果预览</span>
+                    <button class="btn-copy" onclick="copyResult()">一键复制文本</button>
+                </div>
+                <textarea class="preview-text" id="resultText" placeholder="在此处显示生成的护理记录..."></textarea>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">点击插入常用语：</div>
+                <div class="tags-container" id="tagsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 患者档案视图（默认隐藏，不影响原有界面）-->
+    <div id="archiveView">
+        <div class="arch-header">
+            <h1>📁 患者护理档案</h1>
+            <button class="btn-back" onclick="switchView('templates')">⬅️ 返回场景模板</button>
+        </div>
+        <div class="arch-body" id="archBody"></div>
+    </div>
+
+    <!-- 临时记事本视图（默认隐藏，不影响原有界面）-->
+    <div id="noteView">
+        <div class="arch-header">
+            <h1>🗒️ 临时记事本</h1>
+            <button class="btn-back" onclick="switchView('templates')">⬅️ 返回场景模板</button>
+        </div>
+        <div class="arch-body">
+            <div class="arch-toolbar">
+                <button class="btn-primary" onclick="toggleQuickFill()">⚡ 快捷填空（生命体征）</button>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn-back" onclick="copyAllNotes()">📋 复制全部</button>
+                    <button class="btn-danger" style="padding:6px 14px;font-size:13px;" onclick="clearAllNotes()">🗑 清空</button>
+                </div>
+            </div>
+            <div id="quickFillBox" style="display:none;background:#fff;padding:18px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">
+                <div class="info-grid" style="box-shadow:none;padding:0;margin-bottom:12px;">
+                    <div class="form-group"><label>床号</label><input class="form-control" id="qf_bed" placeholder="如 3"></div>
+                    <div class="form-group"><label>姓名</label><input class="form-control" id="qf_name" placeholder="如 张三"></div>
+                    <div class="form-group"><label>体温(℃)</label><input class="form-control" id="qf_temp" placeholder="36.5"></div>
+                    <div class="form-group"><label>脉搏(次/分)</label><input class="form-control" id="qf_pulse" placeholder="80"></div>
+                    <div class="form-group"><label>呼吸(次/分)</label><input class="form-control" id="qf_resp" placeholder="18"></div>
+                    <div class="form-group"><label>血压(mmHg)</label><input class="form-control" id="qf_bp" placeholder="120/80"></div>
+                    <div class="form-group"><label>血氧(%)</label><input class="form-control" id="qf_spo2" placeholder="98"></div>
+                    <div class="form-group"><label>备注/特殊交代</label><input class="form-control" id="qf_note" placeholder="如 10点复查血压"></div>
+                </div>
+                <button class="btn-primary" onclick="genQuickNote()">✅ 生成并记一笔</button>
+                <div style="font-size:12px;color:#999;margin-top:8px;">提示：留空的格子会自动跳过，只填体温血压也能生成。</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:15px;">
+                <input class="form-control" id="freeNoteInput" placeholder="随手记一条…（按回车即存）" onkeydown="if(event.key==='Enter')addFreeNote()">
+                <button class="btn-primary" style="white-space:nowrap;" onclick="addFreeNote()">＋ 记一笔</button>
+            </div>
+            <div id="noteList"></div>
+        </div>
+    </div>
+
+    <!-- 临床计算器视图（仅新增，不影响原有界面）-->
+    <div id="calcView">
+        <div class="arch-header">
+            <h1>🧮 临床计算器</h1>
+            <button class="btn-back" onclick="switchView('templates')">⬅️ 返回场景模板</button>
+        </div>
+        <div class="arch-body">
+            <div class="calc-tabs">
+                <div class="calc-tab active" data-calc="sccalc" onclick="calcSwitch(this)">🔢 常规计算器</div>
+                <div class="calc-tab" data-calc="fluid" onclick="calcSwitch(this)">💧 出入量平衡</div>
+                <div class="calc-tab" data-calc="drip" onclick="calcSwitch(this)">🩸 输液滴速</div>
+                <div class="calc-tab" data-calc="duration" onclick="calcSwitch(this)">⏳ 输液时长</div>
+                <div class="calc-tab" data-calc="conv" onclick="calcSwitch(this)">🔁 单位换算</div>
+                <div class="calc-tab" data-calc="dose" onclick="calcSwitch(this)">💉 用药剂量</div>
+                <div class="calc-tab" data-calc="bmi" onclick="calcSwitch(this)">📏 BMI</div>
+            </div>
+            <div class="calc-panel" id="calc_fluid">
+                <div class="calc-card">
+                    <div class="calc-row" style="gap:20px;align-items:flex-start">
+                        <div style="flex:1;min-width:240px">
+                            <div class="section-title" style="margin:0 0 8px;font-size:14px">📥 摄入量（饮水/输液/食物含水…）</div>
+                            <div style="display:flex;gap:8px;margin-bottom:8px">
+                                <input class="form-control" id="intake_f_name" placeholder="名称，如 生理盐水" style="flex:1">
+                                <input class="form-control" id="intake_f_vol" placeholder="ml" type="number" style="width:90px">
+                                <button class="btn-primary" style="padding:8px 14px" onclick="addFluid('intake')">＋</button>
+                            </div>
+                            <div id="intake_list"><div style="color:#bbb;font-size:12px;padding:6px 0">暂无记录</div></div>
+                        </div>
+                        <div style="flex:1;min-width:240px">
+                            <div class="section-title" style="margin:0 0 8px;font-size:14px">📤 排出量（尿量/引流/呕吐…）</div>
+                            <div style="display:flex;gap:8px;margin-bottom:8px">
+                                <input class="form-control" id="output_f_name" placeholder="名称，如 尿量" style="flex:1">
+                                <input class="form-control" id="output_f_vol" placeholder="ml" type="number" style="width:90px">
+                                <button class="btn-primary" style="padding:8px 14px" onclick="addFluid('output')">＋</button>
+                            </div>
+                            <div id="output_list"><div style="color:#bbb;font-size:12px;padding:6px 0">暂无记录</div></div>
+                        </div>
+                    </div>
+                    <div class="calc-result" id="fluid_balance">总入量 <b>0</b> ml ｜ 总出量 <b>0</b> ml<br>液体平衡：<span class="bal-zero"><b>0</b> ml</span> — 尚未记录</div>
+                    <div style="margin-top:12px;display:flex;gap:10px"><button class="btn-back" onclick="copyFluid()">📋 复制结果</button><button class="btn-danger" onclick="clearFluid()">清空</button></div>
+                    <div class="calc-tip">成人每日生理需水量约 2000~2500ml，出入量平衡一般以 24 小时为单位统计；正平衡提示液体偏多，负平衡提示脱水，需结合医嘱判断。</div>
+                </div>
+            </div>
+            <div class="calc-panel" id="calc_drip">
+                <div class="calc-card">
+                    <div class="calc-row">
+                        <div class="form-group"><label>液体总量 (ml)</label><input class="form-control" id="drip_total" placeholder="如 500"></div>
+                        <div class="form-group"><label>计划输液时间</label><input class="form-control" id="drip_time" placeholder="如 2"></div>
+                        <div class="form-group"><label>时间单位</label><select class="form-control" id="drip_unit"><option value="h">小时</option><option value="min">分钟</option></select></div>
+                        <div class="form-group"><label>滴系数 (滴/ml)</label><select class="form-control" id="drip_factor"><option value="15">15（普通输液器）</option><option value="20">20（精密/小儿）</option><option value="10">10（输血器）</option></select></div>
+                    </div>
+                    <button class="btn-primary" onclick="calcDrip()">计算滴速</button>
+                    <div class="calc-result" id="drip_res" style="margin-top:14px">填入数值后点"计算滴速"</div>
+                    <div class="calc-tip">公式：滴速(滴/分) = 液体总量(ml) × 滴系数 ÷ 输液时间(分)。滴系数以输液器实际标注为准。</div>
+                </div>
+            </div>
+            <div class="calc-panel" id="calc_conv">
+                <div class="calc-card">
+                    <div class="calc-row">
+                        <div class="form-group"><label>换算类别</label><select class="form-control" id="conv_cat" onchange="renderConvUnits()"><option value="volume">体积 (μl/ml/L)</option><option value="weight">重量 (μg/mg/g/kg)</option><option value="pressure">血压 (mmHg/kPa)</option><option value="length">长度 (mm/cm/m/in)</option><option value="temp">温度 (℃/℉/K)</option></select></div>
+                        <div class="form-group"><label>数值</label><input class="form-control" id="conv_val" placeholder="输入数值" oninput="convCalc()"></div>
+                        <div class="form-group"><label>从</label><select class="form-control" id="conv_from" onchange="convCalc()"></select></div>
+                        <div class="form-group"><label>换算为</label><select class="form-control" id="conv_to" onchange="convCalc()"></select></div>
+                    </div>
+                    <div class="calc-result" id="conv_res">选择类别并输入数值</div>
+                    <div class="calc-tip">换算基准：体积 1L=1000ml=10⁶μl；重量 1kg=1000g=10⁶mg=10⁹μg；血压 1kPa=7.5mmHg；长度 1in=2.54cm；温度 ℉=℃×9/5+32。</div>
+                </div>
+            </div>
+            <div class="calc-panel" id="calc_dose">
+                <div class="calc-card">
+                    <div class="section-title" style="margin-top:0;font-size:14px">按体重算剂量</div>
+                    <div class="calc-row">
+                        <div class="form-group"><label>体重 (kg)</label><input class="form-control" id="dose_wgt" placeholder="如 60"></div>
+                        <div class="form-group"><label>单次剂量 (mg/kg)</label><input class="form-control" id="dose_per" placeholder="如 10"></div>
+                        <div class="form-group"><label>每日次数</label><input class="form-control" id="dose_freq" placeholder="如 3"></div>
+                    </div>
+                    <div class="section-title" style="font-size:14px">配液浓度</div>
+                    <div class="calc-row">
+                        <div class="form-group"><label>药物总量 (mg)</label><input class="form-control" id="mix_drug" placeholder="如 1000"></div>
+                        <div class="form-group"><label>溶媒体积 (ml)</label><input class="form-control" id="mix_fluid" placeholder="如 100"></div>
+                    </div>
+                    <div class="section-title" style="font-size:14px">按医嘱算需抽取体积</div>
+                    <div class="calc-row">
+                        <div class="form-group"><label>医嘱剂量</label><input class="form-control" id="need_dose" placeholder="如 500"></div>
+                        <div class="form-group"><label>药品浓度（同单位）</label><input class="form-control" id="need_conc" placeholder="如 250"></div>
+                    </div>
+                    <button class="btn-primary" onclick="calcDose()">计算</button>
+                    <div class="calc-result" id="dose_res" style="margin-top:14px">按需填写其中一组，点"计算"</div>
+                </div>
+            </div>
+            <div class="calc-panel" id="calc_bmi">
+                <div class="calc-card">
+                    <div class="calc-row">
+                        <div class="form-group"><label>身高 (cm)</label><input class="form-control" id="bmi_h" placeholder="如 165"></div>
+                        <div class="form-group"><label>体重 (kg)</label><input class="form-control" id="bmi_w" placeholder="如 55"></div>
+                    </div>
+                    <button class="btn-primary" onclick="calcBMI()">计算BMI</button>
+                    <div class="calc-result" id="bmi_res" style="margin-top:14px">填入身高体重后点"计算BMI"</div>
+                    <div class="calc-tip">成人中国标准：&lt;18.5 偏瘦，18.5~23.9 正常，24~27.9 超重，≥28 肥胖。BMI=体重(kg)÷身高(m)²。</div>
+                </div>
+            </div>
+            <div class="calc-panel show" id="calc_sccalc">
+                <div class="calc-card" style="max-width:360px;margin:0 auto">
+                    <div class="sc-display" id="scDisplay">0</div>
+                    <div class="sc-grid">
+                        <button class="sc-btn sc-fn" onclick="scClear()">AC</button>
+                        <button class="sc-btn sc-fn" onclick="scNeg()">±</button>
+                        <button class="sc-btn sc-fn" onclick="scPct()">%</button>
+                        <button class="sc-btn sc-op" onclick="scSetOp('÷')">÷</button>
+                        <button class="sc-btn" onclick="scInput('7')">7</button>
+                        <button class="sc-btn" onclick="scInput('8')">8</button>
+                        <button class="sc-btn" onclick="scInput('9')">9</button>
+                        <button class="sc-btn sc-op" onclick="scSetOp('×')">×</button>
+                        <button class="sc-btn" onclick="scInput('4')">4</button>
+                        <button class="sc-btn" onclick="scInput('5')">5</button>
+                        <button class="sc-btn" onclick="scInput('6')">6</button>
+                        <button class="sc-btn sc-op" onclick="scSetOp('-')">−</button>
+                        <button class="sc-btn" onclick="scInput('1')">1</button>
+                        <button class="sc-btn" onclick="scInput('2')">2</button>
+                        <button class="sc-btn" onclick="scInput('3')">3</button>
+                        <button class="sc-btn sc-op" onclick="scSetOp('+')">＋</button>
+                        <button class="sc-btn" onclick="scInput('0')">0</button>
+                        <button class="sc-btn" onclick="scInput('.')">.</button>
+                        <button class="sc-btn sc-fn" onclick="scBack()">⌫</button>
+                        <button class="sc-btn sc-eq" onclick="scEquals()">=</button>
+                    </div>
+                    <div class="calc-tip">支持鼠标点击与键盘输入（数字、+ - * /、回车=、Backspace 退格、Esc 清零、% 百分比）。可用于床旁随手算费用、配液、计数等。</div>
+                </div>
+            </div>
+            <div class="calc-panel" id="calc_duration">
+                <div class="calc-card">
+                    <div class="calc-row">
+                        <div class="form-group"><label>液体总量 (ml)</label><input class="form-control" id="dur_total" placeholder="如 500"></div>
+                        <div class="form-group"><label>实际滴速 (滴/分)</label><input class="form-control" id="dur_drip" placeholder="如 60"></div>
+                        <div class="form-group"><label>滴系数 (滴/ml)</label><select class="form-control" id="dur_factor"><option value="15">15（普通输液器）</option><option value="20">20（精密/小儿）</option><option value="10">10（输血器）</option></select></div>
+                    </div>
+                    <div class="section-title" style="font-size:14px">已输开始时间（选填，推算预计输完时刻）</div>
+                    <div class="calc-row">
+                        <div class="form-group"><label>开始输液时间</label><input class="form-control" type="time" id="dur_start" placeholder="选填"></div>
+                    </div>
+                    <button class="btn-primary" onclick="calcDuration()">计算所需时长</button>
+                    <div class="calc-result" id="dur_res" style="margin-top:14px">填入总量、滴速、滴系数后点"计算所需时长"</div>
+                    <div class="calc-tip">公式：输液时间(分) = 液体总量(ml) × 滴系数 ÷ 滴速(滴/分)。填写开始时间可一并推算预计输完时刻，方便交接班与巡视安排。</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建模板弹窗 -->
+    <!-- 感染/特殊患者登记册视图（默认隐藏，不影响原有界面）-->
+    <div id="infView">
+        <div class="arch-header">
+            <h1>🦠 感染 / 特殊患者登记册</h1>
+            <button class="btn-back" onclick="switchView('templates')">⬅️ 返回场景模板</button>
+        </div>
+        <div class="arch-body">
+            <div class="inf-alert" id="infAlert">尚未登记任何感染/特殊患者。</div>
+            <div class="arch-toolbar">
+                <input class="form-control search-box" id="infSearch" placeholder="搜索姓名/床号/诊断/隔离措施" oninput="renderInfections()">
+                <button class="btn-primary" onclick="openInfModal()">＋ 登记患者</button>
+            </div>
+            <div class="inf-filter" id="infFilter">
+                <div class="inf-chip active" data-route="all" onclick="infFilterRoute(this)">全部</div>
+                <div class="inf-chip" data-route="air" onclick="infFilterRoute(this)">🌫 空气传播</div>
+                <div class="inf-chip" data-route="droplet" onclick="infFilterRoute(this)">💧 飞沫传播</div>
+                <div class="inf-chip" data-route="contact" onclick="infFilterRoute(this)">🧤 接触/多耐</div>
+                <div class="inf-chip" data-route="blood" onclick="infFilterRoute(this)">🩸 血液体液</div>
+                <div class="inf-chip" data-route="other" onclick="infFilterRoute(this)">📌 其他</div>
+            </div>
+            <div id="infList"><div class="inf-empty">还没有登记，点右上角"＋ 登记患者"开始</div></div>
+            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn-back" onclick="copyInfs()">📋 复制全部提醒</button>
+                <button class="btn-danger" onclick="clearInfs()">🗑 清空登记册</button>
+            </div>
+            <div class="calc-tip">登记册仅保存在本机浏览器（本地存储），用于提醒本班次护士哪些患者需关注隔离与防护；传播途径与隔离措施请以院感规范和医嘱为准。</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal">
+            <h3>新建自定义模板</h3>
+            <label>模板名称：</label>
+            <input type="text" class="modal-input" id="newTplName" placeholder="例如：PICC维护">
+            <label>模板内容（用 [变量名] 表示填空处）：</label>
+            <textarea class="modal-input" id="newTplContent" rows="5" placeholder="例如：患者于[时间]进行[操作]，局部皮肤[情况]。"></textarea>
+            <div style="font-size: 12px; color: #999; margin-bottom: 10px;">提示：方括号内的文字会自动变成输入框</div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">取消</button>
+                <button class="btn-save" onclick="saveCustomTemplate()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建患者档案弹窗 -->
+    <div class="modal-overlay" id="recModal">
+        <div class="modal">
+            <h3>新建患者档案</h3>
+            <label>姓名：</label><input type="text" class="modal-input" id="rc_name" placeholder="张三">
+            <label>床号：</label><input type="text" class="modal-input" id="rc_bed" placeholder="12床">
+            <label>性别：</label><select class="modal-input" id="rc_gender"><option>男</option><option>女</option></select>
+            <label>年龄：</label><input type="number" class="modal-input" id="rc_age" placeholder="65">
+            <label>入院时间：</label><input type="datetime-local" class="modal-input" id="rc_admit">
+            <label>主诉/诊断：</label><input type="text" class="modal-input" id="rc_diag" placeholder="肺部感染">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeRecModal()">取消</button>
+                <button class="btn-save" onclick="saveNewRecord()">保存档案</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 感染/特殊患者登记弹窗 -->
+    <div class="modal-overlay" id="infModal">
+        <div class="modal">
+            <h3>🦠 登记感染/特殊患者</h3>
+            <label>姓名：</label><input type="text" class="modal-input" id="if_name" placeholder="张三">
+            <label>床号：</label><input type="text" class="modal-input" id="if_bed" placeholder="12床">
+            <label>性别：</label><select class="modal-input" id="if_gender"><option>男</option><option>女</option></select>
+            <label>年龄：</label><input type="number" class="modal-input" id="if_age" placeholder="65">
+            <label>感染/特殊诊断：</label><input type="text" class="modal-input" id="if_diag" placeholder="如 继发性肺结核 / 耐甲氧西林金葡菌定植">
+            <label>传播/隔离类别：</label>
+            <select class="modal-input" id="if_route">
+                <option value="air">🌫 空气传播（肺结核、水痘、麻疹…）</option>
+                <option value="droplet">💧 飞沫传播（流感、流脑、百日咳、新冠…）</option>
+                <option value="contact">🧤 接触隔离 / 多重耐药菌（MDRO、诺如、疥疮…）</option>
+                <option value="blood">🩸 血液/体液（乙肝、丙肝、HIV、梅毒…）</option>
+                <option value="other">📌 其他特殊（精神行为异常、跌倒高危、意识障碍…）</option>
+            </select>
+            <label>隔离/防护措施：</label><input type="text" class="modal-input" id="if_measure" placeholder="如 单间负压、戴N95、手套隔离衣、严格手卫生">
+            <label>解除/复查日期（选填，到期变红提醒）：</label><input type="date" class="modal-input" id="if_until">
+            <label>备注/注意事项：</label><input type="text" class="modal-input" id="if_note" placeholder="如 吸痰需双人、锐器伤高风险">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeInfModal()">取消</button>
+                <button class="btn-save" onclick="saveInfection()">保存登记</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_TEMPLATES = [
+            { id: 'admission', name: '🏥 新患者入院', template: "患者[姓名]，[性别]，[年龄]岁，因“[主诉]”于[时间]步行/轮椅/平车入院。入院查体：T [体温]℃，P [脉搏]次/分，R [呼吸]次/分，BP [血压]mmHg，SpO2 [血氧]%。神志清楚，精神可，对答切题。遵医嘱给予[护理级别]护理，[饮食]，完善相关检查，已进行入院宣教及安全教育。",
+              variables: [
+                  { key: '姓名', label: '患者姓名' },
+                  { key: '性别', label: '性别', type: 'select', options: ['男', '女'] },
+                  { key: '年龄', label: '年龄' },
+                  { key: '主诉', label: '主诉/诊断' },
+                  { key: '时间', label: '入院时间', type: 'time' },
+                  { key: '体温', label: '体温(℃)' },
+                  { key: '脉搏', label: '脉搏(次/分)' },
+                  { key: '呼吸', label: '呼吸(次/分)' },
+                  { key: '血压', label: '血压(mmHg)' },
+                  { key: '血氧', label: '血氧饱和度(%)' },
+                  { key: '护理级别', label: '护理级别', type: 'select', options: ['特级', '一级', '二级', '三级'] },
+                  { key: '饮食', label: '饮食', type: 'select', options: ['普食', '糖尿病饮食', '低盐低脂饮食', '禁食水'] }
+              ] },
+            { id: 'fever', name: '🌡️ 发热处理', template: "[时间]患者体温升高至[体温]℃，伴/不伴有畏寒、寒战。立即通知医生，遵医嘱给予[处理措施]。[复测时间]复测体温[复测体温]℃，患者出汗多/无出汗，嘱其多饮温水，注意保暖，继续观察体温变化。",
+              variables: [
+                  { key: '时间', label: '发现时间', type: 'time' },
+                  { key: '体温', label: '当前体温(℃)' },
+                  { key: '处理措施', label: '处理措施', type: 'select', options: ['物理降温', '口服退热药', '肌肉注射退热针', '冰袋冷敷'] },
+                  { key: '复测时间', label: '复测时间', type: 'time' },
+                  { key: '复测体温', label: '复测体温(℃)' }
+              ] },
+            { id: 'postop', name: '🛌 术后护理', template: "患者于[时间]在[麻醉方式]下行[手术名称]术，手术顺利。于[回房时间]安返病房。查体：神志清楚/嗜睡/昏迷，生命体征平稳。切口敷料干燥/有少量渗出，引流管在位通畅，引流出[颜色]液体约[引流量]ml。遵医嘱给予[术后护理措施]，嘱患者去枕平卧/侧卧，禁食水/流质饮食。",
+              variables: [
+                  { key: '时间', label: '手术时间', type: 'time' },
+                  { key: '麻醉方式', label: '麻醉方式', type: 'select', options: ['全麻', '腰麻', '局麻', '神经阻滞'] },
+                  { key: '手术名称', label: '手术名称' },
+                  { key: '回房时间', label: '返回病房时间', type: 'time' },
+                  { key: '引流量', label: '引流量(ml)' },
+                  { key: '颜色', label: '引流液颜色', type: 'select', options: ['暗红色', '鲜红色', '淡血性', '淡黄色'] },
+                  { key: '术后护理措施', label: '术后医嘱', type: 'select', options: ['心电监护', '吸氧', '抗炎补液', '镇痛'] }
+              ] },
+            { id: 'rescue', name: '🚨 抢救记录', template: "[时间]患者突发意识丧失，大动脉搏动消失，呼吸停止。立即通知医生，即刻给予持续胸外心脏按压，开放气道，简易呼吸器辅助通气。遵医嘱给予肾上腺素[剂量]mg静脉推注，[其他用药]。[结束时间]患者恢复自主心律/未恢复自主心律，心率[心率]次/分，血压[血压]mmHg，SpO2 [血氧]%。继续给予心电监护，密切观察病情变化，抢救过程记录完毕。",
+              variables: [
+                  { key: '时间', label: '抢救开始时间', type: 'time' },
+                  { key: '剂量', label: '肾上腺素剂量(mg)' },
+                  { key: '其他用药', label: '其他用药/措施' },
+                  { key: '结束时间', label: '抢救结束时间', type: 'time' },
+                  { key: '心率', label: '恢复后心率' },
+                  { key: '血压', label: '恢复后血压' },
+                  { key: '血氧', label: '恢复后血氧' }
+              ] },
+            { id: 'change', name: '⚠️ 病情突变', template: "[时间]巡视病房发现患者突发[症状]，立即通知医生。查体：神志[意识状态]，双侧瞳孔[瞳孔状态]，对光反射[反射状态]，T [体温]℃，P [脉搏]次/分，R [呼吸]次/分，BP [血压]mmHg。遵医嘱给予[处理措施]，持续心电监护，密切观察病情变化，安抚患者及家属情绪。",
+              variables: [
+                  { key: '时间', label: '发现时间', type: 'time' },
+                  { key: '症状', label: '突发症状', type: 'select', options: ['意识模糊', '烦躁不安', '呼吸困难', '胸闷胸痛', '肢体抽搐', '大汗淋漓'] },
+                  { key: '意识状态', label: '意识状态', type: 'select', options: ['清楚', '模糊', '嗜睡', '浅昏迷', '深昏迷'] },
+                  { key: '瞳孔状态', label: '瞳孔状态', type: 'select', options: ['等大等圆', '不等大', '针尖样缩小', '散大'] },
+                  { key: '反射状态', label: '对光反射', type: 'select', options: ['灵敏', '迟钝', '消失'] },
+                  { key: '处理措施', label: '处理措施', type: 'textarea' }
+              ] },
+            { id: 'tube', name: '🧪 管路滑脱', template: "[时间]患者不慎自行拔除/翻身时滑脱[管路名称]，立即检查患者情况，局部皮肤[皮肤情况]，有无出血/渗液。立即通知医生，遵医嘱给予[处理措施]。已向患者及家属再次强调管路重要性及注意事项，加强巡视，必要时遵医嘱给予保护性约束。",
+              variables: [
+                  { key: '时间', label: '发生时间', type: 'time' },
+                  { key: '管路名称', label: '管路名称', type: 'select', options: ['胃管', '尿管', '气管插管', '深静脉置管', '胸腔引流管', '腹腔引流管'] },
+                  { key: '皮肤情况', label: '局部皮肤情况', type: 'select', options: ['完好', '破损', '红肿', '有渗血'] },
+                  { key: '处理措施', label: '处理措施', type: 'textarea' }
+              ] },
+            { id: 'transfusion', name: '🩸 输血反应', template: "[时间]在输注[血液制品]过程中，患者突发[反应症状]，立即停止输血，更换输液器，用生理盐水维持静脉通路。立即通知医生，遵医嘱给予[处理措施]。密切观察生命体征及尿色变化，安抚患者情绪，保留血袋及输血器送检。",
+              variables: [
+                  { key: '时间', label: '发生时间', type: 'time' },
+                  { key: '血液制品', label: '血液制品', type: 'select', options: ['悬浮红细胞', '血浆', '血小板', '冷沉淀'] },
+                  { key: '反应症状', label: '反应症状', type: 'select', options: ['发热寒战', '皮疹瘙痒', '腰背剧痛', '呼吸困难', '血红蛋白尿'] },
+                  { key: '处理措施', label: '处理措施', type: 'textarea' }
+              ] },
+            { id: 'fall', name: '🤕 跌倒/坠床', template: "[时间]患者不慎在[地点]发生跌倒/坠床，立即赶到患者身边，检查患者意识及受伤情况。查体：神志清楚，[受伤部位]皮肤[皮肤情况]，有无出血/肿胀/骨折征象。立即通知医生，遵医嘱给予[处理措施]。已向患者及家属进行防跌倒/坠床安全教育，加强巡视。",
+              variables: [
+                  { key: '时间', label: '发生时间', type: 'time' },
+                  { key: '地点', label: '发生地点', type: 'select', options: ['病床旁', '卫生间', '走廊', '病房内'] },
+                  { key: '受伤部位', label: '受伤部位', type: 'select', options: ['头部', '上肢', '下肢', '髋部', '全身多处'] },
+                  { key: '皮肤情况', label: '皮肤情况', type: 'select', options: ['完好', '擦伤', '血肿', '破损出血'] },
+                  { key: '处理措施', label: '处理措施', type: 'textarea' }
+              ] },
+            { id: 'med', name: '💊 特殊用药', template: "[时间]遵医嘱给予[药物名称][剂量][给药方式]。用药前评估患者[评估内容]，用药后密切观察患者反应，[复测时间]复测[观察指标]为[数值]，患者无特殊不适/出现[不良反应]，已告知医生。",
+              variables: [
+                  { key: '时间', label: '用药时间', type: 'time' },
+                  { key: '药物名称', label: '药物名称' },
+                  { key: '剂量', label: '剂量' },
+                  { key: '给药方式', label: '给药方式', type: 'select', options: ['静脉推注', '静脉滴注', '肌肉注射', '皮下注射', '口服'] },
+                  { key: '评估内容', label: '用药前评估', type: 'select', options: ['血压', '心率', '血糖', '瞳孔', '意识'] },
+                  { key: '复测时间', label: '复测时间', type: 'time' },
+                  { key: '观察指标', label: '复测指标', type: 'select', options: ['血压', '心率', '血糖', '瞳孔', '意识'] },
+                  { key: '数值', label: '复测数值' },
+                  { key: '不良反应', label: '不良反应' }
+              ] },
+            { id: 'exam', name: '🔬 特殊检查/治疗', template: "[时间]协助医生行[检查/治疗名称]，术中患者生命体征平稳/出现[术中情况]，配合顺利。术后查体：穿刺点/切口[局部情况]，敷料干燥/有渗出。嘱患者[术后注意事项]，密切观察病情变化。",
+              variables: [
+                  { key: '时间', label: '开始时间', type: 'time' },
+                  { key: '检查/治疗名称', label: '检查/治疗名称', type: 'select', options: ['腰椎穿刺', '胸腔穿刺', '腹腔穿刺', '深静脉置管', '床旁血透', '气管切开'] },
+                  { key: '术中情况', label: '术中情况' },
+                  { key: '局部情况', label: '局部情况', type: 'select', options: ['无渗血', '少量渗血', '红肿', '皮下气肿'] },
+                  { key: '术后注意事项', label: '术后注意事项', type: 'textarea' }
+              ] },
+            { id: 'discharge', name: '👋 出院/转科', template: "[时间]患者病情好转/遵医嘱转科，办理出院/转科手续。向患者及家属进行[宣教内容]，患者及家属表示理解。协助整理用物，护送患者至电梯口/病房。",
+              variables: [
+                  { key: '时间', label: '离开时间', type: 'time' },
+                  { key: '宣教内容', label: '出院/转科宣教', type: 'select', options: ['饮食指导', '用药指导', '康复训练', '复诊时间', '注意事项'] }
+              ] }
+        ];
+
+        const QUICK_PHRASES = ["神志清楚", "精神尚可", "呼吸平稳", "对答切题", "双侧瞳孔等大等圆", "对光反射灵敏", "四肢活动自如", "皮肤完整", "无压疮", "引流管通畅", "固定妥善", "嘱卧床休息", "低盐低脂饮食", "告病危", "告病重", "心电监护中", "吸氧中"];
+
+        let templates = [];
+        let currentTemplateId = '';
+        let formData = {};
+
+        function init() {
+            const saved = localStorage.getItem('nurse_templates_v2');
+            if (saved) {
+                try { templates = JSON.parse(saved); }
+                catch(e) { templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES)); }
+            } else {
+                templates = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
+                saveTemplates();
+            }
+            if (templates.length > 0) { selectTemplate(templates[0].id); }
+            renderMenu();
+            renderQuickPhrases();
+        }
+
+        function saveTemplates() { localStorage.setItem('nurse_templates_v2', JSON.stringify(templates)); }
+
+        function renderMenu() {
+            const list = document.getElementById('menuList');
+            list.innerHTML = '';
+            const systemTpls = templates.filter(t => !t.id.startsWith('custom_'));
+            const customTpls = templates.filter(t => t.id.startsWith('custom_'));
+            if(systemTpls.length > 0) { systemTpls.forEach(t => createMenuItem(t, list)); }
+            if(customTpls.length > 0) {
+                const divider = document.createElement('div');
+                divider.style.padding = '10px 12px 5px';
+                divider.style.fontSize = '12px';
+                divider.style.color = '#999';
+                divider.innerText = '我的自定义';
+                list.appendChild(divider);
+                customTpls.forEach(t => createMenuItem(t, list));
+            }
+        }
+
+        function createMenuItem(t, container) {
+            const div = document.createElement('div');
+            div.className = `menu-item ${t.id === currentTemplateId ? 'active' : ''}`;
+            div.onclick = () => selectTemplate(t.id);
+            const nameSpan = document.createElement('span');
+            nameSpan.innerText = t.name;
+            div.appendChild(nameSpan);
+            if (t.id.startsWith('custom_')) {
+                const delSpan = document.createElement('span');
+                delSpan.className = 'delete-btn';
+                delSpan.innerText = '×';
+                delSpan.onclick = (e) => { e.stopPropagation(); deleteTemplate(t.id); };
+                div.appendChild(delSpan);
+            }
+            container.appendChild(div);
+        }
+
+        function renderQuickPhrases() {
+            const container = document.getElementById('tagsContainer');
+            container.innerHTML = '';
+            QUICK_PHRASES.forEach(p => {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.innerText = p;
+                tag.onclick = () => insertPhrase(p);
+                container.appendChild(tag);
+            });
+        }
+
+        function selectTemplate(id) {
+            currentTemplateId = id;
+            const tpl = templates.find(t => t.id === id);
+            if (!tpl) return;
+            document.getElementById('currentTplName').innerText = tpl.name;
+            formData = {};
+            if (tpl.variables) {
+                tpl.variables.forEach(v => {
+                    if (v.type === 'time') {
+                        const now = new Date();
+                        const year = now.getFullYear();
+                        const month = String(now.getMonth() + 1).padStart(2, '0');
+                        const day = String(now.getDate()).padStart(2, '0');
+                        const hours = String(now.getHours()).padStart(2, '0');
+                        const minutes = String(now.getMinutes()).padStart(2, '0');
+                        formData[v.key] = `${year}-${month}-${day} ${hours}:${minutes}`;
+                    } else {
+                        formData[v.key] = v.options ? v.options[0] : '';
+                    }
+                });
+            }
+            renderForm(tpl);
+            updateResult();
+            renderMenu();
+        }
+
+        function renderForm(tpl) {
+            const grid = document.getElementById('formGrid');
+            grid.innerHTML = '';
+            if (!tpl.variables || tpl.variables.length === 0) {
+                grid.innerHTML = '<div style="color:#999; grid-column: 1/-1;">此模板无需填写变量，可直接复制下方文本。</div>';
+                return;
+            }
+            tpl.variables.forEach(v => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                const label = document.createElement('label');
+                label.innerText = v.label;
+                group.appendChild(label);
+                let input;
+                if (v.type === 'textarea') {
+                    input = document.createElement('textarea');
+                    input.className = 'form-control';
+                    input.rows = 2;
+                } else if (v.type === 'select') {
+                    input = document.createElement('select');
+                    input.className = 'form-control';
+                    v.options.forEach(opt => {
+                        const option = document.createElement('option');
+                        option.value = opt;
+                        option.innerText = opt;
+                        input.appendChild(option);
+                    });
+                } else {
+                    input = document.createElement('input');
+                    input.className = 'form-control';
+                    input.type = 'text';
+                }
+                input.value = formData[v.key] || '';
+                const handler = (e) => { formData[v.key] = e.target.value; updateResult(); };
+                input.addEventListener('input', handler);
+                if (v.type === 'select') { input.addEventListener('change', handler); }
+                group.appendChild(input);
+                grid.appendChild(group);
+            });
+        }
+
+        function updateResult() {
+            const tpl = templates.find(t => t.id === currentTemplateId);
+            if (!tpl) return;
+            let text = tpl.template;
+            Object.keys(formData).forEach(key => {
+                const val = formData[key] || `[${key}]`;
+                const regex = new RegExp(`\\[${key}\\]`, 'g');
+                text = text.replace(regex, val);
+            });
+            document.getElementById('resultText').value = text;
+        }
+
+        function insertPhrase(phrase) {
+            const textarea = document.getElementById('resultText');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const newText = text.substring(0, start) + phrase + text.substring(end);
+            textarea.value = newText;
+            textarea.focus();
+            textarea.setSelectionRange(start + phrase.length, start + phrase.length);
+        }
+
+        function copyResult() {
+            const textarea = document.getElementById('resultText');
+            textarea.select();
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    alert('✅ 已复制到剪贴板！');
+                }).catch(err => { document.execCommand('copy'); alert('✅ 已复制到剪贴板！'); });
+            } else { document.execCommand('copy'); alert('✅ 已复制到剪贴板！'); }
+        }
+
+        function openModal() { document.getElementById('customModal').style.display = 'flex'; }
+        function closeModal() {
+            document.getElementById('customModal').style.display = 'none';
+            document.getElementById('newTplName').value = '';
+            document.getElementById('newTplContent').value = '';
+        }
+
+        function saveCustomTemplate() {
+            const name = document.getElementById('newTplName').value.trim();
+            const content = document.getElementById('newTplContent').value.trim();
+            if (!name || !content) { alert('请填写名称和内容'); return; }
+            const vars = [];
+            const regex = /\[(.*?)\]/g;
+            let match;
+            const foundKeys = new Set();
+            while ((match = regex.exec(content)) !== null) {
+                const key = match[1];
+                if (!foundKeys.has(key)) { foundKeys.add(key); vars.push({ key: key, label: key }); }
+            }
+            const newTpl = { id: 'custom_' + Date.now(), name: '⭐ ' + name, template: content, variables: vars };
+            templates.push(newTpl);
+            saveTemplates();
+            renderMenu();
+            selectTemplate(newTpl.id);
+            closeModal();
+        }
+
+        function deleteTemplate(id) {
+            askConfirm('确定删除这个自定义模板吗？删除后不可恢复。', function(){
+                templates = templates.filter(t => t.id !== id);
+                saveTemplates();
+                renderMenu();
+                if (currentTemplateId === id) { selectTemplate(templates[0].id); }
+            });
+        }
+
+        // ================= 患者档案功能（独立模块，不改动原有逻辑）=================
+        let patientRecords = JSON.parse(localStorage.getItem('nurse_records') || '[]');
+        let currentPatientId = null;
+        const rid = () => Math.random().toString(36).slice(2, 11);
+        function saveRecords(){ localStorage.setItem('nurse_records', JSON.stringify(patientRecords)); }
+        function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
+
+        function switchView(view){
+            const arch = document.getElementById('archiveView');
+            const note = document.getElementById('noteView');
+            const calc = document.getElementById('calcView');
+            const tplBtn = document.getElementById('tabTplBtn');
+            const arcBtn = document.getElementById('tabArcBtn');
+            const noteBtn = document.getElementById('tabNoteBtn');
+            const calcBtn = document.getElementById('tabCalcBtn');
+            arch.classList.remove('show');
+            note.classList.remove('show');
+            calc.classList.remove('show');
+            const inf = document.getElementById('infView');
+            const infBtn = document.getElementById('tabInfBtn');
+            inf.classList.remove('show');
+            [tplBtn, arcBtn, noteBtn, calcBtn, infBtn].forEach(b => b.classList.remove('active'));
+            if(view === 'archive'){
+                arch.classList.add('show'); arcBtn.classList.add('active'); renderArchiveList();
+            } else if(view === 'note'){
+                note.classList.add('show'); noteBtn.classList.add('active'); renderNotes();
+            } else if(view === 'calc'){
+                calc.classList.add('show'); calcBtn.classList.add('active'); renderFluid(); renderConvUnits();
+            } else if(view === 'inf'){
+                inf.classList.add('show'); infBtn.classList.add('active'); renderInfections();
+            } else {
+                tplBtn.classList.add('active');
+            }
+        }
+
+        let archComposing = false; // 中文/拼音输入法合成输入标记
+        function renderArchiveList(){
+            // 进入/结构刷新：搜索框常驻在 archBody，列表单独放进 #archList，
+            // 这样打字时不会重绘输入框本身 —— 修复拼音无法切换成中文的问题。
+            const oldKwEl = document.getElementById('archSearch');
+            const keepFocus = oldKwEl ? oldKwEl.value : '';
+            let html = '<div class="arch-toolbar">'
+                + '<input class="form-control search-box" id="archSearch" placeholder="搜索姓名/床号/诊断" autocomplete="off" oninput="onArchSearch()" oncompositionstart="archComposing=true" oncompositionend="archComposing=false;onArchSearch()">'
+                + '<button class="btn-primary" onclick="openRecModal()">+ 新建患者档案</button></div>'
+                + '<div id="archList"></div>';
+            document.getElementById('archBody').innerHTML = html;
+            if(keepFocus){ const e=document.getElementById('archSearch'); e.value=keepFocus; e.focus(); }
+            refreshArchList();
+        }
+        function onArchSearch(){
+            if(archComposing) return; // 拼音合成过程中不重绘，避免打断中文输入
+            refreshArchList();
+        }
+        function refreshArchList(){
+            const box = document.getElementById('archList'); if(!box) return;
+            const kwEl = document.getElementById('archSearch');
+            const kw = (kwEl ? kwEl.value : '').trim();
+            let list = patientRecords;
+            if(kw){ list = patientRecords.filter(r => (r.name+r.bed+r.diagnosis).includes(kw)); }
+            let html = '';
+            if(list.length === 0){
+                html += '<div style="text-align:center;color:#aaa;padding:40px;">'+(kw?'未找到匹配的患者':'还没有患者档案，点右上角"新建患者档案"开始')+'</div>';
+            } else {
+                list.forEach(r => {
+                    html += '<div class="rec-card"><div>'
+                        + '<h4>'+r.name+' <span class="pill">'+r.gender+'</span> <span class="pill">'+r.age+'岁</span> <span class="pill">'+(r.bed||'无床号')+'</span></h4>'
+                        + '<p>诊断：'+(r.diagnosis||'—')+' ｜ 入院：'+(r.admitTime||'—')+' ｜ 体征记录 '+r.vitals.length+' 条</p></div>'
+                        + '<div><button class="btn-primary" style="padding:5px 14px;font-size:13px;margin-right:6px" onclick="openPatient(\''+r.id+'\')">打开</button>'
+                        + '<button class="btn-danger" onclick="deleteRecord(\''+r.id+'\')">删除</button></div></div>';
+                });
+            }
+            box.innerHTML = html;
+        }
+
+        function openRecModal(){
+            ['rc_name','rc_bed','rc_age','rc_diag'].forEach(id=>document.getElementById(id).value='');
+            const now = new Date();
+            const pad = n=>String(n).padStart(2,'0');
+            document.getElementById('rc_admit').value = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'T'+pad(now.getHours())+':'+pad(now.getMinutes());
+            document.getElementById('rc_gender').value = '男';
+            document.getElementById('recModal').style.display = 'flex';
+        }
+        function closeRecModal(){ document.getElementById('recModal').style.display = 'none'; }
+        function saveNewRecord(){
+            const name = document.getElementById('rc_name').value.trim();
+            if(!name){ alert('请填写患者姓名'); return; }
+            patientRecords.unshift({
+                id: rid(), name: name,
+                bed: document.getElementById('rc_bed').value.trim(),
+                gender: document.getElementById('rc_gender').value,
+                age: document.getElementById('rc_age').value.trim(),
+                admitTime: document.getElementById('rc_admit').value.replace('T',' '),
+                diagnosis: document.getElementById('rc_diag').value.trim(),
+                vitals: []
+            });
+            saveRecords(); closeRecModal(); renderArchiveList();
+        }
+        function deleteRecord(id){
+            const r = patientRecords.find(x=>x.id===id);
+            askConfirm('确定删除【'+r.name+'】的全部档案（含 '+r.vitals.length+' 条体征记录）吗？删除后不可恢复。', function(){
+                patientRecords = patientRecords.filter(x=>x.id!==id);
+                saveRecords();
+                if(currentPatientId===id){ currentPatientId=null; }
+                renderArchiveList();
+            });
+        }
+
+        function openPatient(id){ currentPatientId = id; renderPatient(id); }
+        function renderPatient(id){
+            const r = patientRecords.find(x=>x.id===id);
+            if(!r){ renderArchiveList(); return; }
+            const vitals = [...r.vitals].sort((a,b)=> new Date(a.time)-new Date(b.time));
+            let vitHtml = vitals.length ? vitals.map(v=>
+                '<div class="vital-item">'
+                + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+                + '<span class="vital-time">🕒 '+(v.time||'—')+'</span>'
+                + '<button class="btn-danger" onclick="delVital(\''+r.id+'\',\''+v.id+'\')">删除该条</button></div>'
+                + '<div style="font-size:13px;line-height:1.8;color:#444">'
+                + '<span class="pill">T '+(v.temp||'—')+'℃</span><span class="pill">P '+(v.pulse||'—')+'</span><span class="pill">R '+(v.resp||'—')+'</span><span class="pill">BP '+(v.bp||'—')+'</span><span class="pill">SpO₂ '+(v.spo2||'—')+'%</span>'
+                + '<span class="pill">级别 '+(v.level||'—')+'</span><span class="pill">饮食 '+(v.diet||'—')+'</span><br>'
+                + '病情：'+(v.condition||'无')+'<br>措施：'+(v.measures||'无')+'</div></div>').join('')
+                : '<div style="color:#aaa;text-align:center;padding:20px">暂无体征记录，点下方"新增体征记录"</div>';
+
+            document.getElementById('archBody').innerHTML =
+                '<div class="arch-toolbar">'
+                + '<button class="btn-back" onclick="renderArchiveList()">⬅️ 返回档案列表</button>'
+                + '<button class="btn-primary" onclick="previewPatient(\''+r.id+'\')">📋 预览并复制完整档案</button></div>'
+                + '<div class="section-title">👤 患者基础信息（修改后自动保存）</div>'
+                + '<div class="info-grid">'
+                + '<div class="form-group"><label>姓名</label><input class="form-control" value="'+esc(r.name)+'" onchange="updInfo(\''+r.id+'\',\'name\',this.value)"></div>'
+                + '<div class="form-group"><label>床号</label><input class="form-control" value="'+esc(r.bed)+'" onchange="updInfo(\''+r.id+'\',\'bed\',this.value)"></div>'
+                + '<div class="form-group"><label>性别</label><select class="form-control" onchange="updInfo(\''+r.id+'\',\'gender\',this.value)"><option '+((r.gender=='男')?'selected':'')+'>男</option><option '+((r.gender=='女')?'selected':'')+'>女</option></select></div>'
+                + '<div class="form-group"><label>年龄</label><input class="form-control" type="number" value="'+esc(r.age)+'" onchange="updInfo(\''+r.id+'\',\'age\',this.value)"></div>'
+                + '<div class="form-group"><label>入院时间</label><input class="form-control" value="'+esc(r.admitTime)+'" onchange="updInfo(\''+r.id+'\',\'admitTime\',this.value)"></div>'
+                + '<div class="form-group"><label>主诉/诊断</label><input class="form-control" value="'+esc(r.diagnosis)+'" onchange="updInfo(\''+r.id+'\',\'diagnosis\',this.value)"></div>'
+                + '</div>'
+                + '<div class="section-title">📈 体征与护理记录（'+vitals.length+' 条）'
+                + '<button class="btn-primary" style="padding:5px 14px;font-size:13px;margin-left:12px" onclick="toggleVForm()">＋ 新增体征记录</button></div>'
+                + '<div id="vFormBox" style="display:none;background:#fff;padding:18px;border-radius:8px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.05)">'
+                + '<div class="info-grid" style="box-shadow:none;padding:0;margin-bottom:0">'
+                + '<div class="form-group"><label>记录时间</label><input class="form-control" id="v_time"></div>'
+                + '<div class="form-group"><label>体温(℃)</label><input class="form-control" id="v_temp" placeholder="36.5"></div>'
+                + '<div class="form-group"><label>脉搏(次/分)</label><input class="form-control" id="v_pulse" placeholder="80"></div>'
+                + '<div class="form-group"><label>呼吸(次/分)</label><input class="form-control" id="v_resp" placeholder="18"></div>'
+                + '<div class="form-group"><label>血压(mmHg)</label><input class="form-control" id="v_bp" placeholder="120/80"></div>'
+                + '<div class="form-group"><label>血氧(%)</label><input class="form-control" id="v_spo2" placeholder="98"></div>'
+                + '<div class="form-group"><label>护理级别</label><select class="form-control" id="v_level"><option>特级</option><option>一级</option><option selected>二级</option><option>三级</option></select></div>'
+                + '<div class="form-group"><label>饮食</label><select class="form-control" id="v_diet"><option>普食</option><option>软食</option><option>半流质</option><option>流质</option><option>禁食水</option></select></div>'
+                + '</div>'
+                + '<div class="form-group" style="margin-top:10px"><label>病情描述</label><textarea class="form-control" id="v_cond" rows="2"></textarea></div>'
+                + '<div class="form-group" style="margin-top:10px"><label>护理措施</label><textarea class="form-control" id="v_meas" rows="2"></textarea></div>'
+                + '<div style="margin-top:12px;display:flex;gap:10px"><button class="btn-primary" onclick="saveVital(\''+r.id+'\')">保存记录</button>'
+                + '<button class="btn-back" onclick="toggleVForm()">取消</button></div></div>'
+                + '<div id="vList">'+vitHtml+'</div>';
+        }
+        function updInfo(id,k,v){ const r=patientRecords.find(x=>x.id===id); if(r){ r[k]=v; saveRecords(); } }
+        function toggleVForm(){
+            const box=document.getElementById('vFormBox');
+            box.style.display = box.style.display==='none' ? 'block':'none';
+            if(box.style.display==='block'){
+                const now=new Date(); const pad=n=>String(n).padStart(2,'0');
+                document.getElementById('v_time').value=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+' '+pad(now.getHours())+':'+pad(now.getMinutes());
+            }
+        }
+        function saveVital(id){
+            const r=patientRecords.find(x=>x.id===id); if(!r) return;
+            r.vitals.push({
+                id: rid(),
+                time: document.getElementById('v_time').value,
+                temp: document.getElementById('v_temp').value,
+                pulse: document.getElementById('v_pulse').value,
+                resp: document.getElementById('v_resp').value,
+                bp: document.getElementById('v_bp').value,
+                spo2: document.getElementById('v_spo2').value,
+                level: document.getElementById('v_level').value,
+                diet: document.getElementById('v_diet').value,
+                condition: document.getElementById('v_cond').value,
+                measures: document.getElementById('v_meas').value
+            });
+            saveRecords(); renderPatient(id);
+        }
+        function delVital(rid_,vid){
+            askConfirm('确定删除这条体征记录吗？删除后不可恢复。', function(){
+                const r=patientRecords.find(x=>x.id===rid_);
+                r.vitals=r.vitals.filter(v=>v.id!==vid);
+                saveRecords(); renderPatient(rid_);
+            });
+        }
+        function previewPatient(id){
+            const r=patientRecords.find(x=>x.id===id); if(!r) return;
+            const sorted=[...r.vitals].sort((a,b)=>new Date(a.time)-new Date(b.time));
+            let txt='【患者护理记录单】\n姓名：'+r.name+'  性别：'+r.gender+'  年龄：'+r.age+'岁  床号：'+(r.bed||'—')+'\n诊断：'+(r.diagnosis||'—')+'  入院时间：'+(r.admitTime||'—')+'\n\n';
+            if(sorted.length===0){ txt+='暂无体征记录。'; }
+            sorted.forEach(v=>{
+                txt+='【'+(v.time||'—')+'】\n患者神志可，测体温'+(v.temp||'—')+'℃，脉搏'+(v.pulse||'—')+'次/分，呼吸'+(v.resp||'—')+'次/分，血压'+(v.bp||'—')+'mmHg，血氧饱和度'+(v.spo2||'—')+'%。遵医嘱予'+(v.level||'—')+'护理、'+(v.diet||'—')+'。\n病情观察：'+(v.condition||'无特殊')+'。\n护理措施：'+(v.measures||'常规护理')+'。\n\n';
+            });
+            const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select();
+            document.execCommand('copy'); document.body.removeChild(ta);
+            alert('已生成并复制完整护理记录文本，可直接粘贴。');
+        }
+
+        // ================= 临时记事本功能（独立模块，不改动原有逻辑）=================
+        let notes = JSON.parse(localStorage.getItem('nurse_notes') || '[]');
+        function saveNotes(){ localStorage.setItem('nurse_notes', JSON.stringify(notes)); }
+        function escN(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        function nowNoteStr(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds()); }
+        function toggleQuickFill(){ const b=document.getElementById('quickFillBox'); b.style.display = b.style.display==='none' ? 'block':'none'; }
+        function addFreeNote(){
+            const el=document.getElementById('freeNoteInput');
+            const t=el.value.trim(); if(!t) return;
+            notes.unshift({ id:'n'+Date.now()+Math.random().toString(36).slice(2,6), text:t, time:nowNoteStr() });
+            el.value=''; saveNotes(); renderNotes();
+        }
+        function genQuickNote(){
+            const bed=document.getElementById('qf_bed').value.trim();
+            const name=document.getElementById('qf_name').value.trim();
+            const temp=document.getElementById('qf_temp').value.trim();
+            const pulse=document.getElementById('qf_pulse').value.trim();
+            const resp=document.getElementById('qf_resp').value.trim();
+            const bp=document.getElementById('qf_bp').value.trim();
+            const spo2=document.getElementById('qf_spo2').value.trim();
+            const remark=document.getElementById('qf_note').value.trim();
+            let head=[]; if(bed) head.push(bed+'床'); if(name) head.push(name);
+            let vit=[]; if(temp) vit.push('T'+temp+'℃'); if(pulse) vit.push('P'+pulse+'次/分'); if(resp) vit.push('R'+resp+'次/分'); if(bp) vit.push('BP'+bp+'mmHg'); if(spo2) vit.push('SpO₂'+spo2+'%');
+            let parts=[]; if(head.length) parts.push(head.join(' ')); if(vit.length) parts.push(vit.join('，')); if(remark) parts.push('备注：'+remark);
+            const text=parts.join('  ');
+            if(!text){ alert('请至少填写床号/姓名，或一项体征/备注'); return; }
+            notes.unshift({ id:'n'+Date.now()+Math.random().toString(36).slice(2,6), text:text, time:nowNoteStr() });
+            ['qf_bed','qf_name','qf_temp','qf_pulse','qf_resp','qf_bp','qf_spo2','qf_note'].forEach(id=>document.getElementById(id).value='');
+            saveNotes(); renderNotes();
+        }
+        function delNote(id){ askConfirm('确定删除这条便签吗？删除后不可恢复。', function(){ notes=notes.filter(n=>n.id!==id); saveNotes(); renderNotes(); }); }
+        function copyOneNote(id){ const n=notes.find(x=>x.id===id); if(n) copyText(n.text,'已复制该条便签'); }
+        function renderNotes(){
+            const box=document.getElementById('noteList'); if(!box) return;
+            if(notes.length===0){ box.innerHTML='<div style="text-align:center;color:#aaa;padding:40px">暂无便签，去病房随手记一条吧～</div>'; return; }
+            box.innerHTML=notes.map(n=>
+                '<div class="note-item">'
+                +'<div class="note-time">🕒 '+n.time+'</div>'
+                +'<div class="note-text">'+escN(n.text)+'</div>'
+                +'<div class="note-actions"><button class="btn-back" style="font-size:12px" onclick="copyOneNote(\''+n.id+'\')">📋 复制</button>'
+                +'<button class="btn-danger" onclick="delNote(\''+n.id+'\')">删除</button></div></div>').join('');
+        }
+        function copyAllNotes(){
+            if(notes.length===0){ alert('还没有便签可复制'); return; }
+            copyText(notes.map(n=>'['+n.time+'] '+n.text).join('\n'), '已复制全部便签');
+        }
+        function clearAllNotes(){ askConfirm('确定清空全部便签吗？共 '+notes.length+' 条，此操作不可恢复。', function(){ notes=[]; saveNotes(); renderNotes(); }); }
+        function copyText(t, msg){ const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} document.body.removeChild(ta); alert(msg||'已复制'); }
+
+        // ============ 统一内嵌确认弹窗（防误触：删除/清空必须再点一次确定删除才生效，替代原生confirm，跨设备一致）============
+        let __confirmCb = null;
+        function askConfirm(msg, onYes, title){
+            let ov = document.getElementById('confirmOverlay');
+            if(!ov){
+                ov = document.createElement('div');
+                ov.className = 'modal-overlay';
+                ov.id = 'confirmOverlay';
+                ov.innerHTML = '<div class="modal" style="width:380px;max-width:90vw;">'
+                    + '<h3 id="confirmTitle" style="color:#dc2626;">确认操作</h3>'
+                    + '<div id="confirmMsg" style="font-size:15px;line-height:1.75;color:#334155;margin:6px 0 6px;word-break:break-all;"></div>'
+                    + '<div class="modal-actions">'
+                    + '<button class="btn-cancel" id="confirmCancelBtn" onclick="closeConfirm()">取消</button>'
+                    + '<button class="btn-save" id="confirmOkBtn" onclick="doConfirm()" style="background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 4px 12px rgba(239,68,68,.32);">确定删除</button>'
+                    + '</div></div>';
+                document.body.appendChild(ov);
+                ov.addEventListener('click', function(ev){ if(ev.target===ov){ closeConfirm(); } });
+            }
+            document.getElementById('confirmTitle').textContent = title || '确认操作';
+            document.getElementById('confirmMsg').textContent = msg;
+            __confirmCb = onYes;
+            ov.style.display = 'flex';
+            const c = document.getElementById('confirmCancelBtn'); if(c){ c.focus(); }
+        }
+        function closeConfirm(){ const ov=document.getElementById('confirmOverlay'); if(ov){ ov.style.display='none'; } __confirmCb=null; }
+        function doConfirm(){ const cb=__confirmCb; closeConfirm(); if(cb){ cb(); } }
+
+        // ================= 顶部实时时钟（仅新增显示，不影响任何原有功能）=================
+        function updateClock(){
+            const d = new Date();
+            const p = n => String(n).padStart(2,'0');
+            const wk = ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];
+            const tEl = document.getElementById('clkTime');
+            const dEl = document.getElementById('clkDate');
+            if(tEl) tEl.textContent = p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+            if(dEl) dEl.textContent = d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+wk;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // ================= 临床计算器（仅新增，不影响任何原有功能）=================
+        let intakeList = [], outputList = [];
+        function calcSwitch(el){
+            document.querySelectorAll('.calc-tab').forEach(t=>t.classList.remove('active'));
+            el.classList.add('active');
+            const key = el.getAttribute('data-calc');
+            document.querySelectorAll('.calc-panel').forEach(p=>p.classList.remove('show'));
+            const panel = document.getElementById('calc_'+key); if(panel) panel.classList.add('show');
+        }
+        function cnum(id){ const v = document.getElementById(id).value.trim(); const n = parseFloat(v); return isNaN(n)?0:n; }
+        function r2(n){ return Math.round(n*100)/100; }
+
+        // 出入量平衡
+        function addFluid(side){
+            const nameEl=document.getElementById(side+'_f_name'), volEl=document.getElementById(side+'_f_vol');
+            const name=nameEl.value.trim() || (side==='intake'?'入量':'出量');
+            const vol=parseFloat(volEl.value);
+            if(isNaN(vol)){ alert('请输入毫升数(ml)'); return; }
+            (side==='intake'?intakeList:outputList).push({name:name, vol:vol});
+            nameEl.value=''; volEl.value=''; renderFluid();
+        }
+        function delFluid(side,i){ const arr=side==='intake'?intakeList:outputList; arr.splice(i,1); renderFluid(); }
+        function sumFluid(arr){ return arr.reduce((s,x)=>s+(x.vol||0),0); }
+        function renderFluid(){
+            const renderSide=(side)=>{
+                const arr=side==='intake'?intakeList:outputList; const box=document.getElementById(side+'_list'); if(!box) return;
+                if(arr.length===0){ box.innerHTML='<div style="color:#bbb;font-size:12px;padding:6px 0">暂无记录</div>'; return; }
+                box.innerHTML=arr.map((x,i)=>'<div class="fluid-item"><span>'+escN(x.name)+'</span><span>'+x.vol+' ml <button class="btn-danger" style="padding:2px 8px;font-size:11px;margin-left:6px" onclick="delFluid(\''+side+'\','+i+')">删</button></span></div>').join('');
+            };
+            renderSide('intake'); renderSide('output');
+            const inT=sumFluid(intakeList), outT=sumFluid(outputList), bal=r2(inT-outT);
+            const cls= bal>0?'bal-pos':(bal<0?'bal-neg':'bal-zero');
+            const label= bal>0?'正平衡（入＞出，多 '+r2(bal)+' ml）':(bal<0?'负平衡（出＞入，少 '+r2(-bal)+' ml）':'出入平衡（持平）');
+            const el=document.getElementById('fluid_balance');
+            if(el) el.innerHTML='总入量 <b>'+r2(inT)+'</b> ml ｜ 总出量 <b>'+r2(outT)+'</b> ml<br>液体平衡：<span class="'+cls+'"><b>'+(bal>0?'+':'')+bal+' ml</b></span> — '+label;
+        }
+        function clearFluid(){ askConfirm('确定清空当前出入量记录吗？', function(){ intakeList=[]; outputList=[]; renderFluid(); }); }
+        function copyFluid(){
+            const inT=r2(sumFluid(intakeList)), outT=r2(sumFluid(outputList)), bal=r2(inT-outT);
+            const t='【出入量记录】\n入量：'+(intakeList.map(x=>x.name+' '+x.vol+'ml').join('，')||'无')+'\n出量：'+(outputList.map(x=>x.name+' '+x.vol+'ml').join('，')||'无')+'\n总入量：'+inT+'ml，总出量：'+outT+'ml，液体平衡：'+(bal>0?'+':'')+bal+'ml';
+            copyText(t,'已复制出入量结果');
+        }
+
+        // 输液滴速
+        function calcDrip(){
+            const total=cnum('drip_total'), t=cnum('drip_time'), unit=document.getElementById('drip_unit').value, factor=cnum('drip_factor');
+            if(total<=0||t<=0||factor<=0){ alert('请填写液体总量、输液时间和滴系数'); return; }
+            const minutes = unit==='h' ? t*60 : t;
+            const drip = Math.round(total*factor/minutes);
+            const perHour = r2(total*60/minutes);
+            document.getElementById('drip_res').innerHTML='应调节滴速：<b>'+drip+'</b> 滴/分 ｜ 每小时约 <b>'+perHour+'</b> ml<br><span class="calc-tip" style="margin-top:6px">公式：滴速(滴/分) = 液体总量(ml) × 滴系数 ÷ 输液时间(分)。</span>';
+        }
+
+        // 单位换算
+        const CONV={ volume:{units:{'μl':0.001,'ml':1,'L':1000}}, weight:{units:{'μg':0.001,'mg':1,'g':1000,'kg':1000000}}, length:{units:{'mm':0.1,'cm':1,'m':100,'in':2.54}}, pressure:{units:{'mmHg':1,'kPa':7.5}} };
+        function renderConvUnits(){
+            const cat=document.getElementById('conv_cat').value; const from=document.getElementById('conv_from'), to=document.getElementById('conv_to');
+            from.innerHTML=''; to.innerHTML='';
+            let units = (cat==='temp') ? ['℃','℉','K'] : Object.keys(CONV[cat].units);
+            units.forEach(u=>{ from.add(new Option(u,u)); to.add(new Option(u,u)); });
+            if(units.length>1) to.selectedIndex=1;
+            convCalc();
+        }
+        function toBase(cat,v,u){ if(cat==='temp'){ if(u==='℃')return v; if(u==='℉')return (v-32)*5/9; return v-273.15; } return v*CONV[cat].units[u]; }
+        function fromBase(cat,v,u){ if(cat==='temp'){ if(u==='℃')return v; if(u==='℉')return v*9/5+32; return v+273.15; } return v/CONV[cat].units[u]; }
+        function convCalc(){
+            const cat=document.getElementById('conv_cat').value; const v=parseFloat(document.getElementById('conv_val').value);
+            const fu=document.getElementById('conv_from').value, tu=document.getElementById('conv_to').value;
+            if(isNaN(v)){ document.getElementById('conv_res').innerHTML='请输入数值'; return; }
+            const out=r2(fromBase(cat, toBase(cat,v,fu), tu));
+            document.getElementById('conv_res').innerHTML=v+' '+fu+' ＝ <b>'+out+'</b> '+tu;
+        }
+
+        // 用药剂量 / 配液 / 抽取体积
+        function calcDose(){
+            const parts=[];
+            const wgt=cnum('dose_wgt'), per=cnum('dose_per'), freq=cnum('dose_freq');
+            if(wgt>0&&per>0){ const single=r2(wgt*per); parts.push('单次剂量：<b>'+single+'</b> mg（'+wgt+'kg × '+per+'mg/kg）'); if(freq>0) parts.push('每日总量：<b>'+r2(single*freq)+'</b> mg'); }
+            const drug=cnum('mix_drug'), fluid=cnum('mix_fluid');
+            if(drug>0&&fluid>0){ parts.push('配液浓度：<b>'+r2(drug/fluid)+'</b> mg/ml'); }
+            const need=cnum('need_dose'), conc=cnum('need_conc');
+            if(need>0&&conc>0){ parts.push('需抽取体积：<b>'+r2(need/conc)+'</b> ml（医嘱 '+need+' ÷ 浓度 '+conc+'）'); }
+            document.getElementById('dose_res').innerHTML = parts.length ? parts.join('<br>') : '请至少填写其中一组数值';
+        }
+
+        // BMI
+        function calcBMI(){
+            const h=cnum('bmi_h'), w=cnum('bmi_w');
+            if(h<=0||w<=0){ alert('请填写身高和体重'); return; }
+            const m=h/100, bmi=r2(w/(m*m));
+            let lv = bmi<18.5?'偏瘦':(bmi<24?'正常':(bmi<28?'超重':'肥胖'));
+            document.getElementById('bmi_res').innerHTML='BMI = <b>'+bmi+'</b>（'+lv+'）';
+        }
+
+        // ================= 常规计算器（仅新增，独立 sc 前缀，不影响任何原有功能）=================
+        let scCur='0', scPrev=null, scOp=null, scReset=false;
+        function scRender(){ const el=document.getElementById('scDisplay'); if(el) el.textContent=scCur; }
+        function scFmt(n){ if(!isFinite(n)) return 'Error'; let r=Math.round(n*1e10)/1e10; return String(r); }
+        function scInput(ch){
+            if(scReset){ scCur = (ch==='.') ? '0.' : ch; scReset=false; scRender(); return; }
+            if(ch==='.'){ if(scCur.indexOf('.')>=0) return; scCur+='.'; }
+            else { if(scCur==='0') scCur=ch; else if(scCur==='-0') scCur='-'+ch; else scCur+=ch; }
+            scRender();
+        }
+        function scCompute(a,b,op){ if(op==='+')return a+b; if(op==='-')return a-b; if(op==='×')return a*b; if(op==='÷')return b===0?NaN:a/b; return b; }
+        function scSetOp(op){
+            const cur=parseFloat(scCur);
+            if(scPrev===null){ scPrev = isNaN(cur)?0:cur; }
+            else if(!scReset){ scPrev = scCompute(scPrev, isNaN(cur)?0:cur, scOp); scCur = scFmt(scPrev); }
+            scOp=op; scReset=true; scRender();
+        }
+        function scEquals(){
+            if(scOp===null||scPrev===null) return;
+            const cur=parseFloat(scCur);
+            scPrev = scCompute(scPrev, isNaN(cur)?0:cur, scOp);
+            scCur = scFmt(scPrev); scOp=null; scReset=true; scRender();
+        }
+        function scClear(){ scCur='0'; scPrev=null; scOp=null; scReset=false; scRender(); }
+        function scBack(){
+            if(scReset) return;
+            if(scCur.length<=1 || (scCur.length===2 && scCur[0]==='-')) scCur='0';
+            else scCur=scCur.slice(0,-1);
+            scRender();
+        }
+        function scNeg(){ if(scCur==='0')return; scCur = scCur[0]==='-'?scCur.slice(1):'-'+scCur; scRender(); }
+        function scPct(){ const v=parseFloat(scCur)||0; scCur=scFmt(v/100); scRender(); }
+        document.addEventListener('keydown', function(e){
+            const panel=document.getElementById('calc_sccalc');
+            const view=document.getElementById('calcView');
+            if(!view||!view.classList.contains('show')||!panel||!panel.classList.contains('show')) return;
+            const tag=(e.target&&e.target.tagName||'').toLowerCase();
+            if(tag==='input'||tag==='textarea'||tag==='select') return;
+            const k=e.key;
+            if(k>='0'&&k<='9'){ scInput(k); e.preventDefault(); }
+            else if(k==='.'){ scInput('.'); e.preventDefault(); }
+            else if(k==='+'){ scSetOp('+'); e.preventDefault(); }
+            else if(k==='-'){ scSetOp('-'); e.preventDefault(); }
+            else if(k==='*'||k==='x'){ scSetOp('×'); e.preventDefault(); }
+            else if(k==='/'){ scSetOp('÷'); e.preventDefault(); }
+            else if(k==='Enter'||k==='='){ scEquals(); e.preventDefault(); }
+            else if(k==='Backspace'){ scBack(); e.preventDefault(); }
+            else if(k==='Escape'){ scClear(); e.preventDefault(); }
+            else if(k==='%'){ scPct(); e.preventDefault(); }
+        });
+
+        // ================= 输液时长反算（仅新增，完善临床计算器）=================
+        function calcDuration(){
+            const total=cnum('dur_total'), drip=cnum('dur_drip'), factor=cnum('dur_factor');
+            if(total<=0||drip<=0||factor<=0){ alert('请填写液体总量、实际滴速和滴系数'); return; }
+            const minutes = total*factor/drip;
+            const h=Math.floor(minutes/60), m=Math.round(minutes-h*60);
+            let txt='预计输液所需时间：<b>'+Math.round(minutes)+'</b> 分钟（约 '+h+' 小时 '+m+' 分）';
+            const st=document.getElementById('dur_start').value;
+            if(st){
+                const now=new Date('2000-01-01T'+st+':00');
+                now.setMinutes(now.getMinutes()+minutes);
+                const p=n=>String(n).padStart(2,'0');
+                txt+='<br>若 '+st+' 开始，预计 <b>'+p(now.getHours())+':'+p(now.getMinutes())+'</b> 输完';
+            }
+            txt+='<br><span class="calc-tip" style="margin-top:6px">公式：输液时间(分) = 液体总量(ml) × 滴系数 ÷ 滴速(滴/分)。</span>';
+            document.getElementById('dur_res').innerHTML=txt;
+        }
+
+
+        // 感染/特殊患者登记册（仅新增，独立 inf 前缀，不影响任何原有功能）
+        let infList = JSON.parse(localStorage.getItem('nurse_inf') || '[]');
+        let infRouteFilter = 'all';
+        function saveInfs(){ localStorage.setItem('nurse_inf', JSON.stringify(infList)); }
+        const INF_ROUTE = {
+            air:{ name:'空气传播', cls:'air', tip:'需戴医用防护口罩(N95)、单间/负压、限制转运' },
+            droplet:{ name:'飞沫传播', cls:'droplet', tip:'需戴外科口罩、保持1米以上、床旁隔离' },
+            contact:{ name:'接触/多耐', cls:'contact', tip:'需手套/隔离衣、专人专用器具、严格手卫生' },
+            blood:{ name:'血液体液', cls:'blood', tip:'需防锐器伤、双层防护、血液体液规范处置' },
+            other:{ name:'其他特殊', cls:'other', tip:'按医嘱与护理评估加强巡视与防护' }
+        };
+        function infToday(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+        function openInfModal(){
+            ['if_name','if_bed','if_age','if_diag','if_measure','if_until','if_note'].forEach(id=>document.getElementById(id).value='');
+            document.getElementById('if_gender').value='男';
+            document.getElementById('if_route').value='contact';
+            document.getElementById('infModal').style.display='flex';
+        }
+        function closeInfModal(){ document.getElementById('infModal').style.display='none'; }
+        function saveInfection(){
+            const name=document.getElementById('if_name').value.trim();
+            const diag=document.getElementById('if_diag').value.trim();
+            if(!name){ alert('请填写患者姓名'); return; }
+            infList.unshift({
+                id:'if'+Date.now()+Math.random().toString(36).slice(2,6),
+                name:name, bed:document.getElementById('if_bed').value.trim(),
+                gender:document.getElementById('if_gender').value,
+                age:document.getElementById('if_age').value.trim(),
+                diag:diag || '未填写诊断',
+                route:document.getElementById('if_route').value,
+                measure:document.getElementById('if_measure').value.trim(),
+                until:document.getElementById('if_until').value,
+                note:document.getElementById('if_note').value.trim(),
+                reg:infToday()
+            });
+            saveInfs(); closeInfModal(); renderInfections();
+        }
+        function delInf(id){ askConfirm('确定解除该患者的感染/特殊登记吗？', function(){ infList=infList.filter(x=>x.id!==id); saveInfs(); renderInfections(); }); }
+        function copyInfOne(id){ const x=infList.find(o=>o.id===id); if(x) copyText(infLineText(x),'已复制该患者提醒'); }
+        function infFilterRoute(el){
+            document.querySelectorAll('#infFilter .inf-chip').forEach(c=>c.classList.remove('active'));
+            el.classList.add('active'); infRouteFilter=el.getAttribute('data-route'); renderInfections();
+        }
+        function infLineText(x){
+            const rt=INF_ROUTE[x.route]||INF_ROUTE.other;
+            let t='['+rt.name+'] '+x.name+(x.bed?'（'+x.bed+'）':'')+'，'+x.diag;
+            if(x.measure) t+='。防护：'+x.measure;
+            if(x.note) t+='。注意：'+x.note;
+            if(x.until) t+='。'+x.until+' 复查/解除';
+            return t;
+        }
+        function renderInfections(){
+            const box=document.getElementById('infList'); if(!box) return;
+            const kw=(document.getElementById('infSearch').value||'').trim();
+            let list=infList;
+            if(infRouteFilter!=='all') list=list.filter(x=>x.route===infRouteFilter);
+            if(kw) list=list.filter(x=>(x.name+x.bed+x.diag+(x.measure||'')+(x.note||'')).includes(kw));
+            const al=document.getElementById('infAlert');
+            if(al){
+                if(infList.length===0){ al.innerHTML='尚未登记任何感染/特殊患者。'; }
+                else{
+                    const air=infList.filter(x=>x.route==='air').length;
+                    const dr=infList.filter(x=>x.route==='droplet').length;
+                    const ct=infList.filter(x=>x.route==='contact').length;
+                    const bl=infList.filter(x=>x.route==='blood').length;
+                    const od=infList.filter(x=>x.until && x.until<infToday()).length;
+                    let h='⚠️ 当前在册 <b>'+infList.length+'</b> 名感染/特殊患者：';
+                    if(air) h+='空气传播 <b>'+air+'</b> 人；';
+                    if(dr) h+='飞沫 <b>'+dr+'</b> 人；';
+                    if(ct) h+='接触/多耐 <b>'+ct+'</b> 人；';
+                    if(bl) h+='血液体液 <b>'+bl+'</b> 人。';
+                    if(od) h+='<br><span class="inf-warn">⏰ 有 '+od+' 名已到/超复查解除日期，请及时复核！</span>';
+                    al.innerHTML=h;
+                }
+            }
+            if(list.length===0){ box.innerHTML='<div class="inf-empty">'+(infList.length===0?'还没有登记，点右上角"＋ 登记患者"开始':'该筛选下暂无记录')+'</div>'; return; }
+            const today=infToday();
+            box.innerHTML=list.map(x=>{
+                const rt=INF_ROUTE[x.route]||INF_ROUTE.other;
+                const over=x.until && x.until<today;
+                let h='<div class="inf-card route-'+rt.cls+(over?' overdue':'')+'">';
+                h+='<h4>'+escN(x.name)+' <span class="inf-pill">'+(x.bed||'无床号')+'</span> <span class="inf-pill">'+(x.gender||'—')+'</span> <span class="inf-pill">'+((x.age||'—')+'岁')+'</span> <span class="inf-badge ib-'+rt.cls+'">'+rt.name+'</span></h4>';
+                h+='<div class="inf-line"><span class="lab">诊断：</span>'+escN(x.diag)+'</div>';
+                if(x.measure) h+='<div class="inf-line"><span class="lab">防护：</span>'+escN(x.measure)+'</div>';
+                if(x.note) h+='<div class="inf-line"><span class="lab">注意：</span>'+escN(x.note)+'</div>';
+                h+='<div class="inf-line"><span class="lab">防护要点：</span>'+rt.tip+'</div>';
+                let tail='登记日期：'+(x.reg||'—');
+                if(x.until){ tail+= over ? ' <span class="inf-warn">｜ 复查/解除 '+x.until+'（已到期，请尽快复核）</span>' : ' ｜ 复查/解除：'+x.until; }
+                h+='<div class="inf-line"><span class="lab">'+tail+'</span></div>';
+                h+='<div class="inf-actions"><button class="btn-back" style="font-size:12px" onclick="copyInfOne(\''+x.id+'\')">📋 复制提醒</button>';
+                h+='<button class="btn-danger" onclick="delInf(\''+x.id+'\')">解除登记</button></div></div>';
+                return h;
+            }).join('');
+        }
+        function copyInfs(){
+            if(infList.length===0){ alert('登记册还是空的'); return; }
+            copyText(infList.map(infLineText).join('\n'),'已复制全部感染/特殊患者提醒');
+        }
+        function clearInfs(){ askConfirm('确定清空整个感染/特殊登记册吗？共 '+infList.length+' 名在册患者，此操作不可恢复。', function(){ infList=[]; saveInfs(); renderInfections(); }); }
+
+        init();
+    </script>
+</body>
+</html>
